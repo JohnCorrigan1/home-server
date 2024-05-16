@@ -10,13 +10,17 @@ export async function GET() {
         console.log(data);
     }).catch(error => console.error(error));
 
+    si.inetLatency().then(data => {
+        console.log("inetLatency\n\n");
+        console.log(data);
+    }).catch(error => console.error(error));
+
+
     //list all drives
-    /*
     si.networkStats().then(data => {
         console.log("networkStats\n\n");
         console.log(data);
     }).catch(error => console.error(error));
-    */
 
     // const osCmd = await oscmd.run('ls');
     //list all the drives
