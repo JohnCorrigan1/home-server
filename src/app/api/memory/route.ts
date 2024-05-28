@@ -9,8 +9,9 @@ export async function GET() {
 }
 
 export type Memory = {
-    totalMemMb: number,
-    usedMemMb: number
+    totalMemory: number,
+    usedMemory: number,
+    memoryUsage: number
 }
 
 
