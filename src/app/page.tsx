@@ -10,13 +10,13 @@ import FileUpload from "../components/FileUpload";
 export default async function Home() {
   return (
     <NextUIProvider>
-      <main className="min-h-screen p-24">
+      <main className="min-h-screen p-24 bg-black">
         <div className="w-full flex gap-24 justify-center">
           <CPUStatus />
           <MemoryStatus />
           <DiskStatus />
         </div>
-       <FileUpload />
+        <FileUpload />
       </main>
     </NextUIProvider>
   );
