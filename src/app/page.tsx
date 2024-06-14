@@ -4,8 +4,8 @@ import {
   CPUStatus,
   DiskStatus,
   MemoryStatus,
-} from "../components/Status";
-import FileUpload from "../components/FileUpload";
+} from "@/components/Status";
+import FileUpload from "@/components/FileUpload";
 
 export default async function Home() {
   return (

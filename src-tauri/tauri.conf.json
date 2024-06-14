@@ -12,8 +12,7 @@
   "tauri": {
     "allowlist": {
       "dialog": {
-        "open": true,
-        "save": true
+        "all": true
       },
       "fs": {
         "all": true
@@ -62,10 +61,10 @@
     "windows": [
       {
         "fullscreen": false,
-        "height": 600,
+        "height": 900,
         "resizable": true,
         "title": "home-server",
-        "width": 800
+        "width": 1200
       }
     ]
   }
