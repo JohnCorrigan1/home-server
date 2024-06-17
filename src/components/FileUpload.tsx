@@ -9,7 +9,7 @@ export default function FileUpload() {
   const [file, setFile] = useState<
     string | string[] | null
   >(null);
-  const [progress, setProgress] = useState(0);
+  const [progress, setProgress] = useState<any>(0);
   const [speed, setSpeed] = useState(0);
   const [startTime, setStartTime] = useState<any>(0);
 
@@ -25,6 +25,11 @@ export default function FileUpload() {
   const uploadFile = async () => {
     if (!file) return;
     console.log("Uploading file", file);
+    console.log("listening to event");
+    const listener = listen("upload-progress", (event) => {
+      setProgress(event.payload[0]);
+      setSpeed(event.payload[1]);
+    });
     setStartTime(Date.now());
     invoke<string>("upload_file", {
       filePath: file,
@@ -32,39 +37,6 @@ export default function FileUpload() {
       console.log("response", response);
     });
   };
-
-  useEffect(() => {
-    const unlisten = listen("upload-progress", (event) => {
-      // const {
-      //   bytesRead,
-      //   totalBytes,
-      //   percentage,
-      //   speed,
-      // }: any = event.payload;
-      // const percentage = event.payload[2];
-      // const speed = event.payload[3];
-      console.log("event", event);
-      console.log("event payload", event.payload);
-      // if (percentage) setProgress(percentage);
-      // if (speed) setSpeed(speed);
-      // setSpeed(speed);
-    });
-
-    return () => {
-      unlisten.then((unlistenFn) => unlistenFn());
-    };
-  }, []);
-
-  // const handleFileUpload = async () => {
-  //   if (!file) {
-  //     alert("Please select a file first.");
-  //     return;
-  //   }
-
-  //   await invoke("upload_file", {
-  //     filePath: file[0],
-  //   });
-  // };
 
   return (
     <div>
