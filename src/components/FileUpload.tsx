@@ -11,26 +11,23 @@ export default function FileUpload() {
   >(null);
   const [progress, setProgress] = useState<any>(0);
   const [speed, setSpeed] = useState(0);
-  const [startTime, setStartTime] = useState<any>(0);
+  const [elapsedTime, setElapsedTime] = useState(0);
 
   const selectFile = async () => {
     const file = await open({
       directory: false,
       multiple: true,
     });
-    console.log(file);
     setFile(file[0]);
   };
 
   const uploadFile = async () => {
     if (!file) return;
-    console.log("Uploading file", file);
-    console.log("listening to event");
     const listener = listen("upload-progress", (event) => {
       setProgress(event.payload[0]);
       setSpeed(event.payload[1]);
+      setElapsedTime(event.payload[2]);
     });
-    setStartTime(Date.now());
     invoke<string>("upload_file", {
       filePath: file,
     }).then((response) => {
@@ -56,6 +53,7 @@ export default function FileUpload() {
         <p>
           {progress.toFixed(2)}% - {speed.toFixed(2)} MB/s
         </p>
+        <p>Seconds: {elapsedTime.toFixed(2)}s</p>
       </div>
     </div>
   );
