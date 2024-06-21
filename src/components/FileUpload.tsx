@@ -28,7 +28,7 @@ export default function FileUpload() {
       setSpeed(event.payload[1]);
       setElapsedTime(event.payload[2]);
     });
-    invoke<string>("upload_file", {
+    invoke<string>("file_upload", {
       filePath: file,
     }).then((response) => {
       console.log("response", response);
