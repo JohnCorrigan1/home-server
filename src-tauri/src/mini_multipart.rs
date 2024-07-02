@@ -36,6 +36,28 @@ impl Multipart {
         }
     }
 
+    // pub fn new_multifile(file_name: &str, file_size: usize, index: usize) -> Self {
+    //     let boundary = format!("----WebKitFormBoundary7MA4YWxkTrZu0gW{}", index);
+    //     let header = format!(
+    //         "--{}\r\n\
+    //          Content-Disposition: form-data; name=\"image\"; filename=\"{}\"\r\n\
+    //          Content-Type: application/octet-stream\r\n\r\n",
+    //         &boundary, file_name
+    //     )
+    //     .into_bytes();
+
+    //     let footer = format!("\r\n--{}--\r\n", &boundary).into_bytes();
+    //     let content_length = header.len() + file_size + footer.len();
+
+    //     Multipart {
+    //         header,
+    //         footer,
+    //         content_length,
+    //         // boundary: &boundary,
+    //         // boundary: &boundray,
+    //     }
+    // }
+
     pub fn request_header(&self, host: &str, endpoint: &str) -> Vec<u8> {
         let request_header = format!(
             "POST {} HTTP/1.1\r\n\

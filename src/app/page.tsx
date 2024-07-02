@@ -6,6 +6,7 @@ import {
   MemoryStatus,
 } from "@/components/Status";
 import FileUpload from "@/components/FileUpload";
+import UploadStream from "@/components/UploadStream";
 
 export default async function Home() {
   return (
@@ -16,7 +17,8 @@ export default async function Home() {
           <MemoryStatus />
           <DiskStatus />
         </div>
-        <FileUpload />
+        {/* <FileUpload /> */}
+        <UploadStream />
       </main>
     </NextUIProvider>
   );

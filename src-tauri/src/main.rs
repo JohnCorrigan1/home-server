@@ -5,14 +5,14 @@ mod mini_multipart;
 mod upload_file;
 
 use std::env;
-use upload_file::{file_upload, stream_file};
+use upload_file::{file_stream, file_upload};
 
 #[tokio::main]
 async fn main() {
     let _ = fix_path_env::fix();
 
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![file_upload, stream_file])
+        .invoke_handler(tauri::generate_handler![file_upload, file_stream])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

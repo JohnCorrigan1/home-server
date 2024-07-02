@@ -12,6 +12,7 @@ export default function FileUpload() {
   const [progress, setProgress] = useState<any>(0);
   const [speed, setSpeed] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
+  const [timeRemaining, setTimeRemaining] = useState(0);
 
   const selectFile = async () => {
     const file = await open({
@@ -27,6 +28,7 @@ export default function FileUpload() {
       setProgress(event.payload[0]);
       setSpeed(event.payload[1]);
       setElapsedTime(event.payload[2]);
+      setTimeRemaining(event.payload[3]);
     });
     invoke<string>("file_upload", {
       filePath: file,
@@ -54,6 +56,7 @@ export default function FileUpload() {
           {progress.toFixed(2)}% - {speed.toFixed(2)} MB/s
         </p>
         <p>Seconds: {elapsedTime.toFixed(2)}s</p>
+        <p>Eta: {timeRemaining.toFixed(2)}</p>
       </div>
     </div>
   );
