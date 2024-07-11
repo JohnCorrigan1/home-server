@@ -1,6 +1,5 @@
 use crate::mini_multipart::Multipart;
 use futures_util::stream::StreamExt;
-use serde::de::IntoDeserializer;
 use std::env;
 use std::path::Path;
 use tauri::Manager;
@@ -100,39 +99,18 @@ pub async fn file_stream(
     show_name: String,
     app_handle: tauri::AppHandle,
 ) -> Result<String, String> {
-    let addr = env::var("FILE_UPLOAD_SERVER").expect("FILE_UPLOAD_SERVER not set");
     let mut handles: Vec<JoinHandle<()>> = Vec::new();
 
-    println!("filetype: {}", &file_type);
-
-    // let show_name_clone = show_name.clone();
     for (index, path) in file_paths.iter().enumerate() {
-        let addr = addr.clone();
         let path = path.clone();
         let app_handle = app_handle.clone();
         let show_name_clone = show_name.clone();
+        let addr = String::from("1.1.1.1:7999");
         let handle = tokio::spawn(async move {
-            let mut stream = TcpStream::connect(addr).await.unwrap();
-            stream.set_nodelay(true).unwrap();
-            let path = Path::new(&path);
-            let file_name = path.file_name().unwrap().to_str().unwrap().to_string();
-            let file = File::open(path).await.unwrap();
-            let filename_size = file_name.len() as u16;
-            // Send the filename size and filename
-            stream
-                .write_all(&filename_size.to_be_bytes())
-                .await
-                .unwrap();
+            let mut file_stream = FileStream::new(&path, show_name_clone, addr, file_type).await;
+            file_stream.init_stream().await;
 
-            stream.write_all(file_name.as_bytes()).await.unwrap();
-
-            stream.write_all(&file_type.to_be_bytes()).await.unwrap();
-
-            let file_type = FileType::from_u16(file_type);
-
-            file_type.stream_type(&mut stream, show_name_clone).await;
-
-            let total_size = file.metadata().await.unwrap().len() as usize;
+            let total_size = file_stream.file_size;
             let (progress_tx, mut progress_rx) = channel::<usize>(100);
 
             let _progress_handle = tokio::spawn(async move {
@@ -143,8 +121,7 @@ pub async fn file_stream(
                     let speed = (progress as f64 / (1024.0 * 1024.0)) / elapsed;
                     let time_remaining =
                         (total_size as f64 - progress as f64) / (speed * 1024.0) / 1000.0;
-                    // println!("Progress handle emit: {}", index);
-                    //only update every 1 second
+
                     if (elapsed * 10.0) as i64 % 10 == 0 || percentage == 100.0 {
                         app_handle
                             .emit_all(
@@ -157,11 +134,11 @@ pub async fn file_stream(
             });
 
             let mut total_written = 0;
-            //let mut buf = vec![0; 1024 * 1024 * 4];
-            let mut reader = FramedRead::with_capacity(file, BytesCodec::new(), 1024 * 1024 * 4);
+            let mut reader =
+                FramedRead::with_capacity(file_stream.file, BytesCodec::new(), 1024 * 1024 * 4);
             while let Some(chunk) = reader.next().await {
                 let chunk = chunk.unwrap();
-                stream.write_all(&chunk).await.unwrap();
+                file_stream.stream.write_all(&chunk).await.unwrap();
                 total_written += chunk.len();
                 progress_tx.send(total_written).await.unwrap();
                 if total_written == total_size {
@@ -169,19 +146,25 @@ pub async fn file_stream(
                     break;
                 }
             }
-            // println!("Progress handle await");
-            // progress_handle.await.unwrap();
-            // println!("Progress handle done");
         });
         handles.push(handle);
     }
-    println!("Handles await");
+
     for handle in handles {
         handle.await.unwrap();
-        // handle.await.unwrap();
     }
-    println!("Handles done");
+
     Ok("".to_string())
+}
+
+struct FileStream<'a> {
+    file_type: FileType,
+    stream: TcpStream,
+    // from_path: &'a Path,
+    file: File,
+    to_path: String,
+    file_name: &'a str,
+    file_size: usize,
 }
 
 enum FileType {
@@ -202,6 +185,15 @@ impl FileType {
         }
     }
 
+    fn as_u16(&self) -> u16 {
+        match self {
+            FileType::Movie => 1,
+            FileType::Show => 2,
+            FileType::Image => 3,
+            FileType::Document => 4,
+        }
+    }
+
     async fn stream_type(&self, stream: &mut TcpStream, show_name: String) {
         match self {
             Self::Show => {
@@ -214,5 +206,44 @@ impl FileType {
             }
             _ => {}
         }
+    }
+}
+
+impl FileStream<'_> {
+    async fn new(path: &String, dest: String, addr: String, file_type: u16) -> FileStream {
+        let file = File::open(path).await.unwrap();
+        let from_path = Path::new(path);
+        let file_name = from_path.file_name().unwrap().to_str().unwrap();
+        let file_size = file.metadata().await.unwrap().len() as usize;
+        let stream = TcpStream::connect(addr).await.unwrap();
+        stream.set_nodelay(true).unwrap();
+
+        FileStream {
+            file,
+            file_name,
+            file_type: FileType::from_u16(file_type),
+            file_size,
+            stream,
+            to_path: dest,
+        }
+    }
+
+    async fn init_stream(&mut self) {
+        let file_name_size = self.file_name.len() as u16;
+        self.stream
+            .write_all(&file_name_size.to_be_bytes())
+            .await
+            .unwrap();
+        self.stream
+            .write_all(&self.file_name.as_bytes())
+            .await
+            .unwrap();
+        self.stream
+            .write_all(&self.file_type.as_u16().to_be_bytes())
+            .await
+            .unwrap();
+        self.file_type
+            .stream_type(&mut self.stream, self.to_path.clone())
+            .await;
     }
 }

@@ -1,12 +1,9 @@
 import { NextUIProvider } from "@nextui-org/react";
 
-import {
-  CPUStatus,
-  DiskStatus,
-  MemoryStatus,
-} from "@/components/Status";
-import FileUpload from "@/components/FileUpload";
-import UploadStream from "@/components/UploadStream";
+import { CPUStatus, DiskStatus, MemoryStatus } from "@/components/Status";
+import FileUpload from "@components/FileUpload";
+import UploadStream from "@components/UploadStream";
+import ListDirectories from "@components/ListDirectories";
 
 export default async function Home() {
   return (
@@ -19,6 +16,7 @@ export default async function Home() {
         </div>
         {/* <FileUpload /> */}
         <UploadStream />
+        <ListDirectories />
       </main>
     </NextUIProvider>
   );
